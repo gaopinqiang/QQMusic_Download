@@ -4,7 +4,18 @@ import re
 import urllib2
 import json
 
+import sys
 
+import os
+
+import LogUtil
+
+#运行配置
+TOP_DOWNLOAD_NUMBER = 1 #搜索下载排名多少的歌曲，2就下载前两个,最大只能设置20
+SEARCH_KEYWORDS = [
+    "练习",
+    "冰雨",
+    ]
 
 def search_music(song_name):
     # print "搜索的歌名：" + song_name.encode("utf-8")
@@ -27,48 +38,44 @@ def search_music(song_name):
           '&searchid=62072551069125820&t=0&aggr=1&cr=1&catZhida=1&lossless=0&flag_qc=0&p=1&n=20&w=%s' \
           '&g_tk=5381&jsonpCallback=searchCallbacksong&loginUin=0&hostUin=0&format=jsonp&inCharset=utf8' \
           '&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0' % song_name
-    print 'Downloading:', url, '\n'
+    LogUtil.i('Searching:'+ url + '\n')
     request = urllib2.Request(url, headers=header)
     try:
         html = urllib2.urlopen(request).read()
     except urllib2.URLError as e:
-        print 'Download error:', e.reason, '\n'
+        print 'Download error:' , e.reason , '\n'
         html = None
     return html
-
-
-def searchCallbacksong(e):
-    pass
-    # for index, item in enumerate(e['data']['song']['list']):
-    #     # print index
-    #     print item["name"]
-
 
 def parseResponse(html):
     # 解析searchCallbacksong(),括号中的内容
     result = re.findall(".*searchCallbacksong\((.*)\).*", html)
     json_str = result[0]
-    print json_str
+    LogUtil.d("reponse 解析的json字符串：" + json_str)
 
     jsonObject = json.loads(json_str)  # 转化为python dict
     # print type(jsonObject)
 
     # print jsonObject["data"]["song"]["list"]
     for index, item in enumerate(jsonObject['data']['song']['list']):
-        media_mid = item["file"]["media_mid"]
-        mid = item["mid"]
-        print str(index) + " media_mid: " + media_mid + "; mid:" + mid
-        get_vkey(mid,media_mid)
-        break;
+        if((index+1)>TOP_DOWNLOAD_NUMBER):
+            LogUtil.d("设置最大下载的数量为：" + str(TOP_DOWNLOAD_NUMBER))
+            break;
+        else:
+            media_mid = item["file"]["media_mid"]
+            mid = item["mid"]
+            save_filename = item["name"] + "-" +str(index+1)+".m4a"
+            LogUtil.d(str(index) + " media_mid: " + media_mid + "; mid:" + mid +"; name:" + save_filename )
+            get_vkey(mid, media_mid,save_filename)
 
-def get_vkey(mid,filename):
+def get_vkey(mid,media_mid,save_filename):
     header = {
         "authority": "c.y.qq.com",
         "method": "GET",
         "path": "/base/fcgi-bin/fcg_music_express_mobile3.fcg?g_tk=5381&jsonpCallback=MusicJsonCallback"
                 "&loginUin=0&hostUin=0&format=json&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq"
                 "&needNewCode=0&cid=205361747&callback=MusicJsonCallback2346403861098214&uin=0&songmid=%s"
-                "&filename=C400%s.m4a&guid=5789371178"%(mid,filename),
+                "&filename=C400%s.m4a&guid=5789371178"%(mid,media_mid),
         "scheme": 'https',
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
         'accept-language': 'zh-CN,zh;q=0.9',
@@ -81,31 +88,30 @@ def get_vkey(mid,filename):
     url = 'https://c.y.qq.com/base/fcgi-bin/fcg_music_express_mobile3.fcg?g_tk=5381&jsonpCallback=MusicJsonCallback' \
           '&loginUin=0&hostUin=0&format=json&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0' \
           '&cid=205361747&callback=MusicJsonCallback&uin=0&songmid=%s&filename=C400%s.m4a' \
-          '&guid=5789371178'%(mid,filename)
-    print 'Downloading vkey :', url, '\n'
+          '&guid=5789371178'%(mid,media_mid)
+
+    LogUtil.i('get vkey :'+ url + '\n')
     request = urllib2.Request(url, headers=header)
     try:
         html = urllib2.urlopen(request).read()
-        print html
         result = re.findall(".*MusicJsonCallback\((.*)\).*", html)
         json_str = result[0]
-        print json_str
+        LogUtil.d("get_vkey 解析的字符串为：" + json_str)
+
         jsonObject = json.loads(json_str)  # 转化为python dict
         filename = jsonObject["data"]["items"][0]["filename"]
         songmid = jsonObject["data"]["items"][0]["songmid"]
         vkey = jsonObject["data"]["items"][0]["vkey"]
-        print filename
-        print songmid
-        print vkey
+        LogUtil.d("filename=" + filename + "  ;songmid:" + songmid + "   ;vkey:" + vkey)
 
-        download_m4a(filename,vkey)
+        download_m4a(filename,vkey,save_filename)
     except urllib2.URLError as e:
-        print 'vkey error:', e.reason, '\n'
+        print 'vkey error:' , e.reason , '\n'
         html = None
     return html
 
 
-def download_m4a(filename,vkey):
+def download_m4a(filename,vkey,save_filename):
     header = {
         'Accept': '*/*',
         'Accept-Encoding': 'identity;q=1, *;q=0',
@@ -119,31 +125,27 @@ def download_m4a(filename,vkey):
 
     # url地址可以浏览器分析获取，主要是&w参数
     url = 'http://dl.stream.qqmusic.qq.com/%s?vkey=%s&guid=5789371178&uin=0&fromtag=66' % (filename, vkey)
-    print 'Downloading m4a :', url, '\n'
+    LogUtil.i('Downloading m4a :' + url + '\n')
     request = urllib2.Request(url, headers=header)
     try:
         html = urllib2.urlopen(request).read()
-        with open(filename, "wb") as code:
-            code.write(html)
+        write_file(save_filename,html)
     except urllib2.URLError as e:
-        print 'm4a error:', e.reason, '\n'
+        print 'm4a error:' , e.reason , '\n'
         html = None
     return html
 
+def write_file(save_filename,data):
+    path = sys.path[0] + os.sep + "Music" + os.sep
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    save_filename = path +  save_filename
+    with open(save_filename, "wb") as code:
+        code.write(data)
 
 if __name__ == "__main__":
-    # song_name = raw_input(unicode('please input name:', 'utf-8'))
-    # song_name = unicode(song_name, 'utf-8')
-
-    song_name = "大约在冬季"
-    # song_name = raw_input(unicode('输入歌曲名:', 'utf-8').encode('gbk'))
-    # song_name = unicode(song_name, 'gbk').encode('utf-8')
-    # print "输入的歌名为：" + song_name.encode("utf-8")
-    html = search_music(song_name)
-    print html
-
-    # 解析方法1：这个函数会自动的执行返回的html中的searchCallbacksong这个函数
-    # exec(html)
-
-    # 解析方法2：通过将数据转化为python对象处理，转成一个dict类型
-    parseResponse(html)
+    for keyword in SEARCH_KEYWORDS:
+        html = search_music(keyword)
+        parseResponse(html)
+    print "完成"
