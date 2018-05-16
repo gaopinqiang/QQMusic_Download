@@ -1,5 +1,7 @@
 # _*_coding:utf-8_*_
 # author:gq
+#version:1.0
+
 import re
 import urllib2
 import json
@@ -8,9 +10,9 @@ import os
 import LogUtil
 
 # 运行配置
-TOP_DOWNLOAD_NUMBER = 2  # 搜索下载排名多少的歌曲，2就下载前两个,最大只能设置20
+TOP_DOWNLOAD_NUMBER = 1  # 搜索下载排名多少的歌曲，2就下载前两个,最大只能设置20
 SEARCH_KEYWORDS = [
-    "刘德华",
+    "大约在冬季",
 ]
 
 def search_music(song_name):
