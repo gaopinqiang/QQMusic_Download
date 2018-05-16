@@ -6,8 +6,7 @@ level_i = 2
 level_w = 3
 level_e = 4
 
-#控制打印的等级
-p = level_v
+p = level_i
 
 def v(content):
     level = 0
@@ -33,4 +32,3 @@ def e(content):
     level = 4
     if level >= p:
         print content
-

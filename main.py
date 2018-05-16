@@ -7,14 +7,14 @@ import sys
 import os
 import LogUtil
 
-# è¿è¡Œé…ç½®
-TOP_DOWNLOAD_NUMBER = 1  # æœç´¢ä¸‹è½½æ’åå¤šå°‘çš„æ­Œæ›²ï¼Œ2å°±ä¸‹è½½å‰ä¸¤ä¸ª,æœ€å¤§åªèƒ½è®¾ç½®20
+# ÔËĞĞÅäÖÃ
+TOP_DOWNLOAD_NUMBER = 2  # ËÑË÷ÏÂÔØÅÅÃû¶àÉÙµÄ¸èÇú£¬2¾ÍÏÂÔØÇ°Á½¸ö,×î´óÖ»ÄÜÉèÖÃ20
 SEARCH_KEYWORDS = [
-    "ç»ƒä¹ ",
+    "ÁõµÂ»ª",
 ]
 
 def search_music(song_name):
-    # print "æœç´¢çš„æ­Œåï¼š" + song_name.encode("utf-8")
+    # print "ËÑË÷µÄ¸èÃû£º" + song_name.encode("utf-8")
     header = {
         "authority": "c.y.qq.com",
         "method": "GET",
@@ -29,7 +29,7 @@ def search_music(song_name):
         'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36'
     }
 
-    # urlåœ°å€å¯ä»¥æµè§ˆå™¨åˆ†æè·å–ï¼Œä¸»è¦æ˜¯&wå‚æ•°
+    # urlµØÖ·¿ÉÒÔä¯ÀÀÆ÷·ÖÎö»ñÈ¡£¬Ö÷ÒªÊÇ&w²ÎÊı
     url = 'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?ct=24&qqmusic_ver=1298&new_json=1&remoteplace=txt.yqq.song' \
           '&searchid=62072551069125820&t=0&aggr=1&cr=1&catZhida=1&lossless=0&flag_qc=0&p=1&n=20&w=%s' \
           '&g_tk=5381&jsonpCallback=searchCallbacksong&loginUin=0&hostUin=0&format=jsonp&inCharset=utf8' \
@@ -45,18 +45,18 @@ def search_music(song_name):
 
 
 def parseResponse(html):
-    # è§£æsearchCallbacksong(),æ‹¬å·ä¸­çš„å†…å®¹
+    # ½âÎösearchCallbacksong(),À¨ºÅÖĞµÄÄÚÈİ
     result = re.findall(".*searchCallbacksong\((.*)\).*", html)
     json_str = result[0]
-    LogUtil.d("reponse è§£æçš„jsonå­—ç¬¦ä¸²ï¼š" + json_str)
+    LogUtil.d("reponse½âÎöµÄjson×Ö·û´®£º".decode("gbk").encode("utf-8") + json_str)
 
-    jsonObject = json.loads(json_str)  # è½¬åŒ–ä¸ºpython dict
+    jsonObject = json.loads(json_str)  # ×ª»¯Îªpython dict
     # print type(jsonObject)
 
     # print jsonObject["data"]["song"]["list"]
     for index, item in enumerate(jsonObject['data']['song']['list']):
         if ((index + 1) > TOP_DOWNLOAD_NUMBER):
-            LogUtil.d("è®¾ç½®æœ€å¤§ä¸‹è½½çš„æ•°é‡ä¸ºï¼š" + str(TOP_DOWNLOAD_NUMBER))
+            LogUtil.d("ÉèÖÃ×î´óÏÂÔØµÄÊıÁ¿Îª£º".decode("gbk").encode("utf-8") + str(TOP_DOWNLOAD_NUMBER))
             break;
         elif(TOP_DOWNLOAD_NUMBER>=1):
             media_mid = item["file"]["media_mid"]
@@ -85,7 +85,7 @@ def get_vkey(mid, media_mid, save_filename):
         'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36'
     }
 
-    # urlåœ°å€å¯ä»¥æµè§ˆå™¨åˆ†æè·å–ï¼Œä¸»è¦æ˜¯&wå‚æ•°
+    # urlµØÖ·¿ÉÒÔä¯ÀÀÆ÷·ÖÎö»ñÈ¡£¬Ö÷ÒªÊÇ&w²ÎÊı
     url = 'https://c.y.qq.com/base/fcgi-bin/fcg_music_express_mobile3.fcg?g_tk=5381&jsonpCallback=MusicJsonCallback' \
           '&loginUin=0&hostUin=0&format=json&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0' \
           '&cid=205361747&callback=MusicJsonCallback&uin=0&songmid=%s&filename=C400%s.m4a' \
@@ -97,9 +97,9 @@ def get_vkey(mid, media_mid, save_filename):
         html = urllib2.urlopen(request).read()
         result = re.findall(".*MusicJsonCallback\((.*)\).*", html)
         json_str = result[0]
-        LogUtil.d("get_vkey è§£æçš„å­—ç¬¦ä¸²ä¸ºï¼š" + json_str)
+        LogUtil.d("get_vkey½âÎöµÄ×Ö·û´®Îª£º".decode("gbk").encode("utf-8") + json_str)
 
-        jsonObject = json.loads(json_str)  # è½¬åŒ–ä¸ºpython dict
+        jsonObject = json.loads(json_str)  # ×ª»¯Îªpython dict
         filename = jsonObject["data"]["items"][0]["filename"]
         songmid = jsonObject["data"]["items"][0]["songmid"]
         vkey = jsonObject["data"]["items"][0]["vkey"]
@@ -124,7 +124,7 @@ def download_m4a(filename, vkey, save_filename):
         'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36'
     }
 
-    # urlåœ°å€å¯ä»¥æµè§ˆå™¨åˆ†æè·å–ï¼Œä¸»è¦æ˜¯&wå‚æ•°
+    # urlµØÖ·¿ÉÒÔä¯ÀÀÆ÷·ÖÎö»ñÈ¡£¬Ö÷ÒªÊÇ&w²ÎÊı
     url = 'http://dl.stream.qqmusic.qq.com/%s?vkey=%s&guid=5789371178&uin=0&fromtag=66' % (filename, vkey)
     LogUtil.i('Downloading m4a :' + url + '\n')
     request = urllib2.Request(url, headers=header)
@@ -148,7 +148,8 @@ def write_file(save_filename, data):
 path = sys.path[0] + os.sep + "Music" + os.sep
 if __name__ == "__main__":
     for keyword in SEARCH_KEYWORDS:
+        keyword = keyword.decode("gbk").encode("utf-8")
         html = search_music(keyword)
         parseResponse(html)
 
-    print "å®Œæˆ! æ–‡ä»¶çš„ä¿å­˜è·¯å¾„ï¼š" + path
+    print "Íê³É!ÎÄ¼şµÄ±£´æÂ·¾¶£º".decode("gbk").encode("utf-8") + path
