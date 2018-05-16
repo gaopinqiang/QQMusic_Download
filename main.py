@@ -40,8 +40,8 @@ def search_music(song_name):
     request = urllib2.Request(url, headers=header)
     try:
         html = urllib2.urlopen(request).read()
-    except urllib2.URLError as e:
-        print 'Download error:', e.reason, '\n'
+    except Exception, e:
+        print 'Download error:', e.message, '\n'
         html = None
     return html
 
@@ -108,8 +108,8 @@ def get_vkey(mid, media_mid, save_filename):
         LogUtil.d("filename=" + filename + "  ;songmid:" + songmid + "   ;vkey:" + vkey)
 
         download_m4a(filename, vkey, save_filename)
-    except urllib2.URLError as e:
-        print 'vkey error:', e.reason, '\n'
+    except Exception, e:
+        print 'vkey error:', e.message, '\n'
         html = None
     return html
 
@@ -133,8 +133,8 @@ def download_m4a(filename, vkey, save_filename):
     try:
         html = urllib2.urlopen(request).read()
         write_file(save_filename, html)
-    except urllib2.URLError as e:
-        print 'm4a error:', e.reason, '\n'
+    except Exception, e:
+        print 'm4a error:', e.message, '\n'
         html = None
     return html
 
